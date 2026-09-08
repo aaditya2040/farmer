@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-scale: 1;
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color-scheme: light;
+}
+
+html {
+  font-size: calc(16px * var(--font-scale));
+}
+
+html.font-normal {
+  --font-scale: 1;
+}
+
+html.font-large {
+  --font-scale: 1.125;
+}
+
+html.font-xlarge {
+  --font-scale: 1.25;
+}
+
+/* High Contrast Mode for Government Portal */
+html.high-contrast {
+  filter: contrast(125%);
+  --govt-navy: #000000;
+  --govt-bg: #FFFFFF;
+}
+
+html.high-contrast body {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
+
+html.high-contrast .bg-govt-navy,
+html.high-contrast .bg-govt-navy-dark,
+html.high-contrast .bg-govt-blue {
+  background-color: #000000 !important;
+  color: #FFFF00 !important;
+}
+
+html.high-contrast .text-govt-navy,
+html.high-contrast .text-govt-blue {
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+
+html.high-contrast .bg-govt-saffron,
+html.high-contrast .bg-govt-saffron-dark {
+  background-color: #D97706 !important;
+  color: #000000 !important;
+}
+
+html.high-contrast .border-govt-border {
+  border-color: #000000 !important;
+  border-width: 2px !important;
+}
+
+/* Indian Government Official Strip Gradient Header */
+.tiranga-strip {
+  height: 4px;
+  background: linear-gradient(90deg, #FF9933 0%, #FF9933 33.3%, #FFFFFF 33.3%, #FFFFFF 66.6%, #138808 66.6%, #138808 100%);
+}
+
+.govt-container {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Print Styles for Token & Official Receipts */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .receipt-container {
+    box-shadow: none !important;
+    border: 2px solid #000000 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 15mm !important;
+  }
+}
+
+/* Custom Scrollbar for Portal */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #0B3559;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #062038;
+}
+
+/* Watermark Stamp Style */
+.govt-watermark {
+  background-image: radial-gradient(circle, rgba(11, 53, 89, 0.04) 10%, transparent 10%);
+  background-size: 20px 20px;
+}
