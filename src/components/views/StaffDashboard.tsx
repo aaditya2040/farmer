@@ -19,7 +19,7 @@ import {
 import { QueueItem, QueueStage } from '../../types';
 
 export const StaffDashboard: React.FC = () => {
-  const { t, language, queueItems, currentServingToken, advanceQueue, staffCallNext, staffUpdateTokenStage, setCurrentView } = useApp();
+  const { t, language, queueItems, currentServingToken, advanceQueue, staffCallNext, staffUpdateTokenStage, setCurrentView, showDemoController, toggleDemoController } = useApp();
   
   const [selectedTokenForAction, setSelectedTokenForAction] = useState<QueueItem | null>(null);
   const [actionModalType, setActionModalType] = useState<'QC' | 'WEIGH' | 'COMPLETE' | null>(null);
@@ -85,8 +85,16 @@ export const StaffDashboard: React.FC = () => {
           </p>
         </div>
 
-        {/* Primary Call Next Button */}
-        <div className="flex items-center gap-3">
+        {/* Primary Action Buttons */}
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={toggleDemoController}
+            className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded text-xs border border-slate-300 transition-colors"
+            title="Toggle Demo Mode Controller"
+          >
+            🛠️ {showDemoController ? 'Hide Demo Bar' : 'Show Demo Bar'}
+          </button>
+
           <button
             onClick={staffCallNext}
             className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold rounded text-xs flex items-center gap-2 shadow-md transition-transform active:scale-98"

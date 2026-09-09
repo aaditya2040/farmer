@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
-  const { t, language } = useApp();
+  const { t, language, showDemoController, toggleDemoController } = useApp();
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [broadcastSent, setBroadcastSent] = useState(false);
   const [selectedDistrict, setSelectedDistrict] = useState('All');
@@ -59,6 +59,14 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={toggleDemoController}
+            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded text-xs border border-slate-300 transition-colors"
+            title="Toggle Demo Mode Controller"
+          >
+            🛠️ {showDemoController ? 'Hide Demo Bar' : 'Show Demo Bar'}
+          </button>
+
           <button
             onClick={() => window.print()}
             className="px-4 py-2 bg-govt-navy hover:bg-govt-navy-dark text-white font-bold rounded text-xs flex items-center gap-1.5 shadow-xs transition-colors"

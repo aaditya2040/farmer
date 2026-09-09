@@ -21,6 +21,7 @@ import {
   mockNotifications 
 } from '../data/mockData';
 import { translations } from '../data/translations';
+import { smsService } from '../services/smsService';
 
 interface AppContextType {
   language: Language;
@@ -60,6 +61,9 @@ interface AppContextType {
   staffUpdateTokenStage: (token: string, newStage: QueueStage, newStatus: QueueItem['status']) => void;
   liveSmsToast: string | null;
   dismissLiveSms: () => void;
+  showDemoController: boolean;
+  setShowDemoController: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleDemoController: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -83,6 +87,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [autoRefresh, setAutoRefresh] = useState<boolean>(false);
   const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState<string>('10:42 AM');
   const [liveSmsToast, setLiveSmsToast] = useState<string | null>(null);
+  const [showDemoController, setShowDemoController] = useState<boolean>(false);
+
+  const toggleDemoController = () => setShowDemoController(prev => !prev);
 
   // Sync font size to html document element
   useEffect(() => {
@@ -143,11 +150,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
         // If next is farmer's own token!
         if (updated[nextIdx].tokenNumber === 'A-127') {
-          setLiveSmsToast(`🔔 [KisanSetu SMS] ALERT: Your Token A-127 is NOW SERVING at Gate No. 2! Please drive your tractor onto Weighbridge #02.`);
+          const alertMsg = `🔔 [KisanSetu SMS] ALERT: Your Token A-127 is NOW SERVING at Gate No. 2! Please drive your tractor onto Weighbridge #02.`;
+          setLiveSmsToast(alertMsg);
+          smsService.sendQueueAlert({
+            mobile: farmer.mobileNumber,
+            farmerName: farmer.fullName,
+            tokenNumber: 'A-127',
+            tokensAhead: 0,
+            centreName: 'APMC Lasalgaon Sub-Centre',
+            gateName: 'Gate No. 2 (Weighbridge In)',
+          }).catch(err => console.warn('Queue alert SMS error:', err));
         } else {
           const remaining = nextIdx - activeIdx;
           if (remaining <= 5) {
-            setLiveSmsToast(`📱 [KisanSetu SMS] Token A-127 Alert: Only ${remaining} tokens remaining before your turn! Please stand by.`);
+            const queueMsg = `📱 [KisanSetu SMS] Token A-127 Alert: Only ${remaining} tokens remaining before your turn! Please stand by.`;
+            setLiveSmsToast(queueMsg);
+            smsService.sendQueueAlert({
+              mobile: farmer.mobileNumber,
+              farmerName: farmer.fullName,
+              tokenNumber: 'A-127',
+              tokensAhead: remaining,
+              centreName: 'APMC Lasalgaon Sub-Centre',
+            }).catch(err => console.warn('Queue alert SMS error:', err));
           }
         }
       }
@@ -228,6 +252,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       actionView: 'token-receipt',
     };
     setNotifications(prev => [newNotif, ...prev]);
+
+    // Dispatch real MSG91 SMS / Live Simulation Toast
+    smsService.sendSlotConfirmation({
+      mobile: farmer.mobileNumber,
+      farmerName: farmer.fullName,
+      tokenNumber: generatedToken,
+      centreName: newBooking.centreName,
+      bookingDate: newBooking.bookingDate,
+      timeSlot: newBooking.timeSlot,
+      cropName: newBooking.cropName,
+    }).then(res => {
+      if (res && res.smsText) {
+        setLiveSmsToast(`📲 [KisanSetu SMS] ${res.smsText}`);
+      } else if (res && res.success) {
+        setLiveSmsToast(`📲 [KisanSetu SMS] Confirmation SMS dispatched to ${farmer.mobileNumber} via MSG91.`);
+      }
+    }).catch(err => console.warn('Slot confirmation SMS dispatch error:', err));
+
     setCurrentView('token-receipt');
   };
 
@@ -297,6 +339,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         staffUpdateTokenStage,
         liveSmsToast,
         dismissLiveSms,
+        showDemoController,
+        setShowDemoController,
+        toggleDemoController,
       }}
     >
       {children}

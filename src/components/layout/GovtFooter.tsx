@@ -5,7 +5,7 @@ import { Phone, Mail, MapPin, Shield, ExternalLink, HelpCircle } from 'lucide-re
 import { ViewType } from '../../types';
 
 export const GovtFooter: React.FC = () => {
-  const { t, setCurrentView } = useApp();
+  const { t, setCurrentView, toggleDemoController, showDemoController } = useApp();
 
   const handleLink = (view: ViewType) => {
     setCurrentView(view);
@@ -151,6 +151,13 @@ export const GovtFooter: React.FC = () => {
             <button onClick={() => handleLink('help')} className="hover:text-white underline underline-offset-2">Terms of Use</button>
             <button onClick={() => handleLink('help')} className="hover:text-white underline underline-offset-2">Accessibility Statement</button>
             <button onClick={() => handleLink('help')} className="hover:text-white underline underline-offset-2">Sitemap</button>
+            <button 
+              onClick={toggleDemoController} 
+              className="text-govt-saffron hover:underline font-mono border border-slate-700 px-1.5 py-0.5 rounded text-[9px]"
+              title="Toggle Demo Evaluation Controls for Presentation"
+            >
+              🛠️ {showDemoController ? 'Hide Demo Bar' : 'Demo Controller'}
+            </button>
           </div>
         </div>
       </div>

@@ -19,6 +19,7 @@ export const translations = {
     logout: 'Logout',
     officerPortal: 'Officer Portal',
     adminPortal: 'State Admin',
+    staffAdminLogin: 'Staff / Admin Login',
 
     // Navigation
     navHome: 'Home',
@@ -263,6 +264,7 @@ export const translations = {
     logout: 'लॉगआउट',
     officerPortal: 'अधिकारी पोर्टल',
     adminPortal: 'राज्य प्रशासन',
+    staffAdminLogin: 'अधिकारी / प्रशासन लॉगिन',
 
     // Navigation
     navHome: 'मुख्यपृष्ठ',
@@ -507,6 +509,7 @@ export const translations = {
     logout: 'लॉगआउट',
     officerPortal: 'अधिकारी पोर्टल',
     adminPortal: 'राज्य प्रशासन',
+    staffAdminLogin: 'कर्मचारी / प्रशासन लॉगिन',
 
     // Navigation
     navHome: 'मुखपृष्ठ',

@@ -11,14 +11,15 @@ import {
   LayoutDashboard,
   Menu,
   X,
-  ShieldAlert,
-  UserCog
+  Lock
 } from 'lucide-react';
 import { ViewType } from '../../types';
+import { StaffAdminModal } from './StaffAdminModal';
 
 export const GovtNavbar: React.FC = () => {
   const { currentView, setCurrentView, t, notifications, isLoggedIn } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [staffModalOpen, setStaffModalOpen] = useState(false);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -61,121 +62,116 @@ export const GovtNavbar: React.FC = () => {
     setMobileMenuOpen(false);
   };
 
+  const handleOpenStaffModal = () => {
+    setStaffModalOpen(true);
+    setMobileMenuOpen(false);
+  };
+
+  const isStaffOrAdminView = currentView === 'staff-dashboard' || currentView === 'admin-dashboard';
+
   return (
-    <nav className="bg-govt-navy text-white shadow-md sticky top-0 z-40 no-print border-b border-govt-navy-dark">
-      <div className="govt-container">
-        
-        {/* Desktop Navbar */}
-        <div className="flex items-center justify-between">
-          <div className="hidden lg:flex items-center space-x-1">
-            {navItems.map((item) => {
-              const isActive = currentView === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleNavClick(item.id)}
-                  className={`flex items-center gap-1.5 px-3 py-3 text-xs font-semibold tracking-wide transition-all border-b-3 ${
-                    isActive
-                      ? 'bg-govt-navy-dark text-govt-saffron border-govt-saffron font-bold'
-                      : 'border-transparent text-slate-100 hover:bg-govt-navy-light/60 hover:text-white'
-                  }`}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                  {item.badge}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Right Side Portals: Staff & Admin */}
-          <div className="hidden lg:flex items-center gap-1.5 py-2">
-            <button
-              onClick={() => handleNavClick('staff-dashboard')}
-              className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded border transition-colors ${
-                currentView === 'staff-dashboard'
-                  ? 'bg-amber-500 text-slate-950 border-amber-400'
-                  : 'bg-govt-navy-light text-slate-200 border-slate-600 hover:bg-slate-700 hover:text-white'
-              }`}
-              title="Centre Officer Queue Management"
-            >
-              <UserCog className="w-3.5 h-3.5 text-amber-400" />
-              <span>{t('officerPortal')}</span>
-            </button>
-
-            <button
-              onClick={() => handleNavClick('admin-dashboard')}
-              className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded border transition-colors ${
-                currentView === 'admin-dashboard'
-                  ? 'bg-green-500 text-slate-950 border-green-400'
-                  : 'bg-govt-navy-light text-slate-200 border-slate-600 hover:bg-slate-700 hover:text-white'
-              }`}
-              title="State Nodal Officer Analytics"
-            >
-              <ShieldAlert className="w-3.5 h-3.5 text-green-400" />
-              <span>{t('adminPortal')}</span>
-            </button>
-          </div>
-
-          {/* Mobile Menu Toggle Button */}
-          <div className="flex lg:hidden items-center justify-between w-full py-2.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-govt-saffron flex items-center gap-1">
-              Menu (नागरी सेवा)
-            </span>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1.5 rounded bg-govt-navy-dark text-white hover:bg-slate-800"
-              aria-label="Toggle navigation menu"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Dropdown Menu */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-govt-navy-light py-2 px-1 bg-govt-navy-dark space-y-1">
-            {navItems.map((item) => {
-              const isActive = currentView === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleNavClick(item.id)}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-xs rounded transition-colors ${
-                    isActive
-                      ? 'bg-govt-navy text-govt-saffron font-bold'
-                      : 'text-slate-200 hover:bg-slate-800'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
+    <>
+      <nav className="bg-govt-navy text-white shadow-md sticky top-0 z-40 no-print border-b border-govt-navy-dark">
+        <div className="govt-container">
+          
+          {/* Desktop Navbar */}
+          <div className="flex items-center justify-between">
+            <div className="hidden lg:flex items-center space-x-1">
+              {navItems.map((item) => {
+                const isActive = currentView === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavClick(item.id)}
+                    className={`flex items-center gap-1.5 px-3 py-3 text-xs font-semibold tracking-wide transition-all border-b-3 ${
+                      isActive
+                        ? 'bg-govt-navy-dark text-govt-saffron border-govt-saffron font-bold'
+                        : 'border-transparent text-slate-100 hover:bg-govt-navy-light/60 hover:text-white'
+                    }`}
+                  >
                     {item.icon}
                     <span>{item.label}</span>
-                  </div>
-                  {item.badge}
-                </button>
-              );
-            })}
+                    {item.badge}
+                  </button>
+                );
+              })}
+            </div>
 
-            <div className="pt-2 border-t border-slate-700 grid grid-cols-2 gap-2 mt-2">
+            {/* Single Right Side Button: Staff / Admin Login */}
+            <div className="hidden lg:flex items-center py-2">
               <button
-                onClick={() => handleNavClick('staff-dashboard')}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded bg-slate-800 text-amber-400 border border-slate-600"
+                onClick={handleOpenStaffModal}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded border transition-colors shadow-2xs ${
+                  isStaffOrAdminView
+                    ? 'bg-amber-500 text-slate-950 border-amber-400'
+                    : 'bg-govt-navy-light text-slate-100 border-slate-600 hover:bg-slate-700 hover:text-white'
+                }`}
+                title="Staff & Administrative Access"
               >
-                <UserCog className="w-3.5 h-3.5" />
-                {t('officerPortal')}
+                <Lock className="w-3.5 h-3.5 text-amber-300" />
+                <span>{t('staffAdminLogin')}</span>
               </button>
+            </div>
+
+            {/* Mobile Menu Toggle Button */}
+            <div className="flex lg:hidden items-center justify-between w-full py-2.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-govt-saffron flex items-center gap-1">
+                KisanSetu Menu
+              </span>
               <button
-                onClick={() => handleNavClick('admin-dashboard')}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded bg-slate-800 text-green-400 border border-slate-600"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-1.5 rounded bg-govt-navy-dark text-white hover:bg-slate-800"
+                aria-label="Toggle navigation menu"
               >
-                <ShieldAlert className="w-3.5 h-3.5" />
-                {t('adminPortal')}
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
           </div>
-        )}
 
-      </div>
-    </nav>
+          {/* Mobile Dropdown Menu */}
+          {mobileMenuOpen && (
+            <div className="lg:hidden border-t border-govt-navy-light py-2 px-1 bg-govt-navy-dark space-y-1">
+              {navItems.map((item) => {
+                const isActive = currentView === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavClick(item.id)}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 text-xs rounded transition-colors ${
+                      isActive
+                        ? 'bg-govt-navy text-govt-saffron font-bold'
+                        : 'text-slate-200 hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </div>
+                    {item.badge}
+                  </button>
+                );
+              })}
+
+              <div className="pt-2 border-t border-slate-700 mt-2">
+                <button
+                  onClick={handleOpenStaffModal}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-bold rounded bg-slate-800 text-amber-400 border border-slate-600"
+                >
+                  <Lock className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{t('staffAdminLogin')}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </nav>
+
+      {/* Staff / Admin Login Modal */}
+      <StaffAdminModal
+        isOpen={staffModalOpen}
+        onClose={() => setStaffModalOpen(false)}
+      />
+    </>
   );
 };

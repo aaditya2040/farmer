@@ -6,7 +6,7 @@ import {
   RotateCcw, 
   ChevronDown, 
   ChevronUp, 
-  CheckCircle2, 
+  X,
   User, 
   UserCog, 
   ShieldAlert,
@@ -29,8 +29,15 @@ export const DemoQuickSwitcher: React.FC = () => {
     currentServingToken, 
     tokensAhead, 
     language, 
-    setLanguage 
+    setLanguage,
+    showDemoController,
+    setShowDemoController
   } = useApp();
+
+  // Only render when explicitly enabled by demo mode or on staff/admin pages if enabled
+  if (!showDemoController) {
+    return null;
+  }
 
   const flowSteps: { id: ViewType; label: string; icon: React.ReactNode }[] = [
     { id: 'home', label: '1. Landing Page', icon: <Sparkles className="w-3 h-3" /> },
@@ -47,18 +54,18 @@ export const DemoQuickSwitcher: React.FC = () => {
   ];
 
   return (
-    <aside aria-label="Demo Evaluation Controller" className="bg-slate-900 text-slate-200 border-b-2 border-govt-saffron text-xs no-print shadow-md">
-      <div className="govt-container py-1">
+    <aside aria-label="Demo Evaluation Controller" className="bg-slate-950 text-slate-200 border-b-2 border-govt-saffron text-xs no-print shadow-md">
+      <div className="govt-container py-1.5">
         
         {/* Switcher Header Bar */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 font-bold text-govt-saffron uppercase tracking-wider text-[11px] bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+            <span className="flex items-center gap-1.5 font-bold text-govt-saffron uppercase tracking-wider text-[11px] bg-slate-900 px-2 py-0.5 rounded border border-slate-700">
               <Sparkles className="w-3.5 h-3.5 text-govt-saffron animate-pulse" />
-              Demo Evaluation Controller
+              Demo Mode Controller
             </span>
             <span className="text-[11px] text-slate-300 hidden md:inline">
-              Serving: <strong className="text-amber-400 font-mono">{currentServingToken}</strong> | Ahead of You: <strong className="text-govt-saffron font-mono">{tokensAhead}</strong>
+              Serving: <strong className="text-amber-400 font-mono">{currentServingToken}</strong> | Ahead: <strong className="text-govt-saffron font-mono">{tokensAhead}</strong>
             </span>
           </div>
 
@@ -70,7 +77,7 @@ export const DemoQuickSwitcher: React.FC = () => {
               title="Simulate next farmer in queue being called"
             >
               <Play className="w-3 h-3 fill-current" />
-              <span>Simulate Next (+1)</span>
+              <span>Next (+1)</span>
             </button>
 
             <button
@@ -78,23 +85,23 @@ export const DemoQuickSwitcher: React.FC = () => {
               className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold border transition-colors ${
                 autoRefresh 
                   ? 'bg-green-600 text-white border-green-500 animate-pulse' 
-                  : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                  : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800'
               }`}
               title="Toggle automatic queue progress simulation every 8s"
             >
-              <span>Auto-Tick: {autoRefresh ? 'ON' : 'OFF'}</span>
+              <span>Auto: {autoRefresh ? 'ON' : 'OFF'}</span>
             </button>
 
             <button
               onClick={resetQueue}
-              className="p-1 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded border border-slate-700"
+              className="p-1 text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 rounded border border-slate-700"
               title="Reset queue state to start"
             >
               <RotateCcw className="w-3 h-3" />
             </button>
 
             {/* Language Quick Switch */}
-            <div className="flex bg-slate-800 rounded border border-slate-700 divide-x divide-slate-700 ml-1">
+            <div className="flex bg-slate-900 rounded border border-slate-700 divide-x divide-slate-700 ml-1">
               <button onClick={() => setLanguage('en')} className={`px-1.5 py-0.5 text-[10px] ${language === 'en' ? 'bg-govt-saffron text-slate-950 font-bold' : 'text-slate-300'}`}>EN</button>
               <button onClick={() => setLanguage('mr')} className={`px-1.5 py-0.5 text-[10px] ${language === 'mr' ? 'bg-govt-saffron text-slate-950 font-bold' : 'text-slate-300'}`}>MR</button>
               <button onClick={() => setLanguage('hi')} className={`px-1.5 py-0.5 text-[10px] ${language === 'hi' ? 'bg-govt-saffron text-slate-950 font-bold' : 'text-slate-300'}`}>HI</button>
@@ -107,6 +114,15 @@ export const DemoQuickSwitcher: React.FC = () => {
               aria-label="Toggle demo bar details"
             >
               {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+
+            {/* Close Demo Controller Button */}
+            <button
+              onClick={() => setShowDemoController(false)}
+              className="p-1 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded ml-1"
+              title="Hide Demo Controller (re-open via Footer or Admin)"
+            >
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -124,10 +140,10 @@ export const DemoQuickSwitcher: React.FC = () => {
                   <button
                     key={step.id}
                     onClick={() => setCurrentView(step.id)}
-                    className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] whitespace-nowrap transition-colors flex-shrink-0 ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded text-[11px] whitespace-nowrap transition-colors flex-shrink-0 ${
                       isActive
                         ? 'bg-govt-saffron text-slate-950 font-bold shadow-xs'
-                        : 'bg-slate-800/90 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/60'
+                        : 'bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/70'
                     }`}
                   >
                     {step.icon}

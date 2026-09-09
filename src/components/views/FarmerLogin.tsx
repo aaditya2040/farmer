@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Phone, KeyRound, ShieldCheck, ArrowRight, Smartphone, RefreshCw, AlertCircle } from 'lucide-react';
+import { KeyRound, ShieldCheck, ArrowRight, Smartphone, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { smsService } from '../../services/smsService';
 
 export const FarmerLogin: React.FC = () => {
   const { t, setCurrentView, setIsLoggedIn, setFarmer } = useApp();
@@ -8,27 +9,92 @@ export const FarmerLogin: React.FC = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otpValue, setOtpValue] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [infoMessage, setInfoMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(30);
 
-  const handleSendOtp = (e: React.FormEvent) => {
+  // Resend OTP countdown timer
+  useEffect(() => {
+    let timer: any;
+    if (otpSent && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown(prev => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [otpSent, countdown]);
+
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (mobileNumber.length < 10) {
       setErrorMessage('Please enter a valid 10-digit mobile number.');
       return;
     }
     setErrorMessage('');
-    setOtpSent(true);
+    setInfoMessage('');
+    setIsLoading(true);
+
+    try {
+      const res = await smsService.requestOtp(mobileNumber);
+      if (res.success) {
+        setOtpSent(true);
+        setCountdown(30);
+        setInfoMessage(res.message || 'OTP dispatched to your mobile number.');
+      } else {
+        setErrorMessage(res.message || 'Failed to dispatch OTP. Please retry.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Error communicating with SMS service.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otpValue.length !== 4) {
       setErrorMessage('Please enter the 4-digit OTP sent to your mobile.');
       return;
     }
-    // Authenticate
-    setIsLoggedIn(true);
-    setCurrentView('dashboard');
+    setErrorMessage('');
+    setInfoMessage('');
+    setIsLoading(true);
+
+    try {
+      const res = await smsService.verifyOtp(mobileNumber || '9876543210', otpValue);
+      if (res.success) {
+        if (mobileNumber) {
+          setFarmer(prev => ({ ...prev, mobileNumber }));
+        }
+        setIsLoggedIn(true);
+        setCurrentView('dashboard');
+      } else {
+        setErrorMessage(res.message || 'Incorrect OTP entered. Please try again.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Verification failed. Please retry.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (countdown > 0 || isLoading) return;
+    setIsLoading(true);
+    setErrorMessage('');
+    try {
+      const res = await smsService.resendOtp(mobileNumber || '9876543210');
+      if (res.success) {
+        setCountdown(30);
+        setInfoMessage(res.message || 'OTP re-sent successfully.');
+      } else {
+        setErrorMessage(res.message || 'Failed to resend OTP.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to resend OTP.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleFillDemo = () => {
@@ -36,6 +102,7 @@ export const FarmerLogin: React.FC = () => {
     setOtpSent(true);
     setOtpValue('9842');
     setErrorMessage('');
+    setInfoMessage('Demo credentials filled (OTP: 9842)');
   };
 
   return (
@@ -75,6 +142,13 @@ export const FarmerLogin: React.FC = () => {
             </div>
           )}
 
+          {infoMessage && (
+            <div className="p-3 rounded bg-green-50 border border-green-200 text-xs text-green-800 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <span>{infoMessage}</span>
+            </div>
+          )}
+
           {!otpSent ? (
             <form onSubmit={handleSendOtp} className="space-y-4">
               <div>
@@ -96,16 +170,26 @@ export const FarmerLogin: React.FC = () => {
                   />
                 </div>
                 <p className="text-[11px] text-slate-500 mt-1">
-                  An OTP will be dispatched to your Aadhaar-registered mobile number.
+                  An OTP will be dispatched via MSG91 to your mobile number.
                 </p>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-2.5 bg-govt-navy hover:bg-govt-navy-dark text-white font-bold rounded text-xs shadow-xs transition-colors flex items-center justify-center gap-2"
+                disabled={isLoading}
+                className="w-full py-2.5 bg-govt-navy hover:bg-govt-navy-dark disabled:opacity-60 text-white font-bold rounded text-xs shadow-xs transition-colors flex items-center justify-center gap-2"
               >
-                <span>{t('getOtpBtn')}</span>
-                <ArrowRight className="w-4 h-4" />
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Sending OTP via MSG91...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{t('getOtpBtn')}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </form>
           ) : (
@@ -139,18 +223,39 @@ export const FarmerLogin: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
                   <span>Demo OTP code: <strong className="font-mono text-slate-800">9842</strong></span>
-                  <button type="button" className="text-govt-navy font-medium hover:underline">
-                    {t('resendOtp')} (00:24)
-                  </button>
+                  {countdown > 0 ? (
+                    <span className="text-slate-500 font-mono">
+                      {t('resendOtp')} (00:{countdown < 10 ? `0${countdown}` : countdown})
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      disabled={isLoading}
+                      className="text-govt-navy font-bold hover:underline"
+                    >
+                      Resend OTP Now
+                    </button>
+                  )}
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-2.5 bg-green-700 hover:bg-green-800 text-white font-bold rounded text-xs shadow-xs transition-colors flex items-center justify-center gap-2"
+                disabled={isLoading}
+                className="w-full py-2.5 bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white font-bold rounded text-xs shadow-xs transition-colors flex items-center justify-center gap-2"
               >
-                <ShieldCheck className="w-4 h-4" />
-                <span>{t('verifyOtpBtn')}</span>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Verifying OTP...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>{t('verifyOtpBtn')}</span>
+                  </>
+                )}
               </button>
             </form>
           )}
@@ -168,7 +273,7 @@ export const FarmerLogin: React.FC = () => {
 
           <div className="text-[11px] text-slate-500 text-center flex items-center justify-center gap-1">
             <ShieldCheck className="w-3.5 h-3.5 text-green-600" />
-            <span>256-bit SSL Encrypted & Mahabhulekh Integrated</span>
+            <span>256-bit SSL Encrypted & MSG91 Integrated Gateway</span>
           </div>
 
         </div>
